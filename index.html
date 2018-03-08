@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Box2D Force</title>
+
+<script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+<script>var zon = true; // true for comments from zim code</script>
+<script src="https://d309knd7es5f10.cloudfront.net/zim_6.8.1.js"></script>
+
+
+<!-- physics libraries -->
+<script src="https://d309knd7es5f10.cloudfront.net/Box2dWeb-2.1.a.3.min.js"></script>
+<script src="libs/physics_0.1.2.js"></script><!-- helper code for box2D -->
+
+<style>body {background-color:#999}</style>
+
+<script>
+
+var frame = new zim.Frame("fit", 1000, 800, "#222");
+frame.on("ready", function() {
+	zog("ready from ZIM Frame");
+
+	var stage = frame.stage;
+	var stageW = frame.width;
+	var stageH = frame.height;
+
+	var physics = new zim.Physics(frame, null, 6);
+	// INITIAL VARS
+	// here we specify width, height, radius
+	// so we can use both for Box2D shapes and ZIM shapes
+	var circleR = 50;
+
+    var circBody1 = physics.makeCircle({dynamic:true,radius:circleR, angular:.1, linear:.1});
+    var circBody2= physics.makeCircle({dynamic:false,radius:circleR, angular:.1, linear:.1});
+
+    circBody1.x = 500;
+    circBody1.y = 500;
+
+    circBody2.x = 500;
+    circBody2.y = 700;
+
+    let circ1 = new Circle(circleR, frame.blue).addTo(stage).pos(circBody1.x, circBody1.y);
+    let circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
+
+    physics.addMap(circBody1, circ1);
+    physics.addMap(circBody2, circ2);
+
+    let speed;
+
+    //physics.drag([circBody1]);
+
+    var distanceJointDef = new b2DistanceJointDef();
+    // two bodies followed by joint end positions
+    distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
+    physics.world.CreateJoint(distanceJointDef);
+
+    var label = new Label({
+       text:speed,
+       size:60,
+       font:"courier",
+       color:frame.pink,
+    })
+        .centerReg(stage)
+        .mov(-300,-300);
+
+	document.onkeydown = keyPressed;
+
+	//w == 87, s == 83, i == 73, j == 74
+
+	function keyPressed(event) {
+		switch(event.keyCode) {
+			case 37: circBody1.ApplyImpulse(new b2Vec2(5, -20), circBody1.GetWorldCenter());
+				break;
+			case 39: circBody1.ApplyImpulse(new b2Vec2(-5, -20), circBody1.GetWorldCenter());
+				break;
+		}
+	}
+
+    circ1.on('click', function(){
+		circBody1.ApplyImpulse(
+            new b2Vec2(0, speed), circBody1.GetWorldCenter()
+            //This second line tells us to apply the force at the stage.mousex divided by the physics scale, so its applied correctly in the physics world
+            //The first b2Vec2 is the impulse, the second is the point
+        );
+        console.log(circBody1.GetLinearVelocity());
+        console.log(speed);
+    });
+
+    Ticker.add(function(){
+        speed = Math.sqrt(Math.pow(circBody1.GetLinearVelocity().x, 2) + Math.pow(circBody1.GetLinearVelocity().y, 2));
+        speed = Math.round(speed * 100)/100;
+        label.text = speed;
+        stage.update();
+    });
+
+	stage.update();
+});
+
+</script>
+</head>
+
+<body>
+</body>
+</html>
