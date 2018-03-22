@@ -25,26 +25,52 @@ frame.on("ready", function() {
 	var stageW = frame.width;
 	var stageH = frame.height;
 
-	var physics = new zim.Physics(frame, null, 6);
+	var borders = {x:0, y:0, width:stageW, height:stageH};
+
+	var physics = new zim.Physics(frame, borders, 6);
 	// INITIAL VARS
 	// here we specify width, height, radius
 	// so we can use both for Box2D shapes and ZIM shapes
 	var circleR = 50;
+	var boxW = 50;
+	var boxH = 50;
+
+	//Creating the small box
+	var bbox = physics.makeRectangle({
+		width: boxW,
+		height: boxH,
+		dynamic: true,
+		friction: .2,
+		density: 0.01
+	});
 
     var circBody1 = physics.makeCircle({dynamic:true,radius:circleR, angular:.1, linear:.1});
     var circBody2= physics.makeCircle({dynamic:false,radius:circleR, angular:.1, linear:.1});
+
+	//var barBody = physics.makeRectangle(boxW, boxH, true, .2);
 
     circBody1.x = 500;
     circBody1.y = 500;
 
     circBody2.x = 500;
-    circBody2.y = 700;
+    circBody2.y = 800;
+
+	physics.debug();
+
+
+
+	bbox.x = 600;
+	bbox.y = 500;
 
     let circ1 = new Circle(circleR, frame.blue).addTo(stage).pos(circBody1.x, circBody1.y);
+
     let circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
+
+	let box1 = new Rectangle(boxW, boxH, frame.green).centerReg(stage).pos(bbox.x, bbox.y);
 
     physics.addMap(circBody1, circ1);
     physics.addMap(circBody2, circ2);
+	physics.addMap(bbox, box1);
 
     let speed;
 
@@ -55,6 +81,11 @@ frame.on("ready", function() {
     distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
     physics.world.CreateJoint(distanceJointDef);
 
+	var boxJointDef = new b2DistanceJointDef();
+	boxJointDef.Initialize(circBody1, bbox, circBody1.GetWorldCenter(), bbox.GetWorldCenter());
+	physics.world.CreateJoint(boxJointDef);
+
+	console.log(bbox.GetWorldCenter());
     var label = new Label({
        text:speed,
        size:60,
@@ -70,12 +101,15 @@ frame.on("ready", function() {
 
 	function keyPressed(event) {
 		switch(event.keyCode) {
-			case 37: circBody1.ApplyImpulse(new b2Vec2(5, -20), circBody1.GetWorldCenter());
+			case 37: circBody1.ApplyImpulse(new b2Vec2(-5, -20), circBody1.GetWorldCenter());
+			console.log(bbox.GetWorldCenter());
 				break;
-			case 39: circBody1.ApplyImpulse(new b2Vec2(-5, -20), circBody1.GetWorldCenter());
+			case 39: circBody1.ApplyImpulse(new b2Vec2(5, -20), circBody1.GetWorldCenter());
 				break;
 		}
 	}
+
+
 
     circ1.on('click', function(){
 		circBody1.ApplyImpulse(
