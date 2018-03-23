@@ -25,9 +25,13 @@ frame.on("ready", function() {
 	var stageW = frame.width;
 	var stageH = frame.height;
 
+
 	var borders = {x:0, y:0, width:stageW, height:stageH};
 
 	var physics = new zim.Physics(frame, borders, 6);
+
+	//physics.debug();
+
 	// INITIAL VARS
 	// here we specify width, height, radius
 	// so we can use both for Box2D shapes and ZIM shapes
@@ -41,7 +45,7 @@ frame.on("ready", function() {
 		height: boxH,
 		dynamic: true,
 		friction: .2,
-		density: 0.01
+		density: 0.5
 	});
 
     var circBody1 = physics.makeCircle({dynamic:true,radius:circleR, angular:.1, linear:.1});
@@ -55,10 +59,6 @@ frame.on("ready", function() {
     circBody2.x = 500;
     circBody2.y = 800;
 
-	physics.debug();
-
-
-
 	bbox.x = 600;
 	bbox.y = 500;
 
@@ -66,15 +66,14 @@ frame.on("ready", function() {
 
     let circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
 
-	let box1 = new Rectangle(boxW, boxH, frame.green).centerReg(stage).pos(bbox.x, bbox.y);
+	//Old skin for invisible box that sways rider for difficulty
+	// let box1 = new Rectangle(boxW, boxH, frame.green).centerReg(stage).pos(bbox.x, bbox.y);
 
     physics.addMap(circBody1, circ1);
     physics.addMap(circBody2, circ2);
-	physics.addMap(bbox, box1);
+	//physics.addMap(bbox, box1);
 
     let speed;
-
-    //physics.drag([circBody1]);
 
     var distanceJointDef = new b2DistanceJointDef();
     // two bodies followed by joint end positions
@@ -85,7 +84,7 @@ frame.on("ready", function() {
 	boxJointDef.Initialize(circBody1, bbox, circBody1.GetWorldCenter(), bbox.GetWorldCenter());
 	physics.world.CreateJoint(boxJointDef);
 
-	console.log(bbox.GetWorldCenter());
+	//console.log(bbox.GetWorldCenter());
     var label = new Label({
        text:speed,
        size:60,
@@ -95,31 +94,61 @@ frame.on("ready", function() {
         .centerReg(stage)
         .mov(-300,-300);
 
-	document.onkeydown = keyPressed;
+	const leanLeft = 83;
+	const leanRight = 75;
+	const peddleLeft = 88;
+	const peddleRight = 77;
+	const peddleCombo = [peddleLeft, peddleRight];
+	let successfulPeddle;
+	let peddleBuffer = [0,0];
 
-	//w == 87, s == 83, i == 73, j == 74
+	window.addEventListener('keyup', function(e) {
+		if(peddleBuffer.length > 1) peddleBuffer.shift();
+		peddleBuffer.push(e.keyCode);
+		console.log(peddleBuffer);
+		switch(e.keyCode) {
+			case leanLeft: leftForce();
+				break;
+			case leanRight: rightForce();
+				break;
+			case peddleLeft: checkPeddle(peddleBuffer);
+				break;
+			case peddleRight: checkPeddle(peddleBuffer);
+				break;
+		}
+	});
 
-	function keyPressed(event) {
-		switch(event.keyCode) {
-			case 37: circBody1.ApplyImpulse(new b2Vec2(-5, -20), circBody1.GetWorldCenter());
-			console.log(bbox.GetWorldCenter());
-				break;
-			case 39: circBody1.ApplyImpulse(new b2Vec2(5, -20), circBody1.GetWorldCenter());
-				break;
+	function checkPeddle(buffer) {
+		console.log(buffer);
+		// successfulPeddle = peddleCombo.every((val) => buffer.includes(val) ? buffer.shift() : false);
+		if (buffer.indexOf(peddleLeft) !== -1 && buffer.indexOf(peddleRight) !== -1) {
+			upForce();
+			console.log(true);
+		} else {
+			console.log(false);
 		}
 	}
 
+	function upForce() {
+		circBody1.ApplyImpulse(new b2Vec2(0, -20), circBody1.GetWorldCenter());
+	}
+	function rightForce() {
+		circBody1.ApplyImpulse(new b2Vec2(10, 0), circBody1.GetWorldCenter());
+	}
+	function leftForce() {
+		circBody1.ApplyImpulse(new b2Vec2(-10, 0), circBody1.GetWorldCenter());
+	}
 
 
-    circ1.on('click', function(){
-		circBody1.ApplyImpulse(
-            new b2Vec2(0, speed), circBody1.GetWorldCenter()
-            //This second line tells us to apply the force at the stage.mousex divided by the physics scale, so its applied correctly in the physics world
-            //The first b2Vec2 is the impulse, the second is the point
-        );
-        console.log(circBody1.GetLinearVelocity());
-        console.log(speed);
-    });
+    // circ1.on('click', function(){
+	// 	circBody1.ApplyImpulse(
+    //         new b2Vec2(0, speed), circBody1.GetWorldCenter()
+    //         //This second line tells us to apply the force at the stage.mousex divided by the physics scale, so its applied correctly in the physics world
+    //         //The first b2Vec2 is the impulse, the second is the point
+    //     );
+    //     console.log(circBody1.GetLinearVelocity());
+    //     console.log(speed);
+    // });
 
     Ticker.add(function(){
         speed = Math.sqrt(Math.pow(circBody1.GetLinearVelocity().x, 2) + Math.pow(circBody1.GetLinearVelocity().y, 2));
