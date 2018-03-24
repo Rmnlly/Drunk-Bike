@@ -85,14 +85,6 @@ frame.on("ready", function() {
 	physics.world.CreateJoint(boxJointDef);
 
 	//console.log(bbox.GetWorldCenter());
-    var label = new Label({
-       text:speed,
-       size:60,
-       font:"courier",
-       color:frame.pink,
-    })
-        .centerReg(stage)
-        .mov(-300,-300);
 
 	const leanLeft = 83;
 	const leanRight = 75;
@@ -101,6 +93,18 @@ frame.on("ready", function() {
 	const peddleCombo = [peddleLeft, peddleRight];
 	let successfulPeddle;
 	let peddleBuffer = [0,0];
+	let momentum = 0;
+	//let counter = 0;
+	let distance = 0;
+
+	var distanceLabel = new Label({
+       text:`Distance: ${distance}m`,
+       size:40,
+       font:"courier",
+       color:frame.pink,
+    })
+        .centerReg(stage)
+        .mov(-300,-300);
 
 	window.addEventListener('keyup', function(e) {
 		if(peddleBuffer.length > 1) peddleBuffer.shift();
@@ -123,14 +127,18 @@ frame.on("ready", function() {
 		// successfulPeddle = peddleCombo.every((val) => buffer.includes(val) ? buffer.shift() : false);
 		if (buffer.indexOf(peddleLeft) !== -1 && buffer.indexOf(peddleRight) !== -1) {
 			upForce();
-			console.log(true);
+			distance+=Math.round(momentum/50);
+			if(momentum < 100) momentum+=4;
+			//counter = 0;
+			console.log(momentum);
 		} else {
-			console.log(false);
+			if(momentum > 0) momentum-=10; //Make a default of 0
+			console.log(momentum);
 		}
 	}
 
 	function upForce() {
-		circBody1.ApplyImpulse(new b2Vec2(0, -20), circBody1.GetWorldCenter());
+		circBody1.ApplyImpulse(new b2Vec2(0, -18), circBody1.GetWorldCenter());
 	}
 	function rightForce() {
 		circBody1.ApplyImpulse(new b2Vec2(10, 0), circBody1.GetWorldCenter());
@@ -138,7 +146,6 @@ frame.on("ready", function() {
 	function leftForce() {
 		circBody1.ApplyImpulse(new b2Vec2(-10, 0), circBody1.GetWorldCenter());
 	}
-
 
     // circ1.on('click', function(){
 	// 	circBody1.ApplyImpulse(
@@ -150,10 +157,27 @@ frame.on("ready", function() {
     //     console.log(speed);
     // });
 
+	//Old speed function
+	// var label = new Label({
+    //    text:speed,
+    //    size:60,
+    //    font:"courier",
+    //    color:frame.pink,
+    // })
+    //     .centerReg(stage)
+    //     .mov(-300,-300);
+	// //These in the ticker
+	// speed = Math.sqrt(Math.pow(circBody1.GetLinearVelocity().x, 2) + Math.pow(circBody1.GetLinearVelocity().y, 2));
+	// speed = Math.round(speed * 100)/100;
+	// label.text = speed;
+
     Ticker.add(function(){
-        speed = Math.sqrt(Math.pow(circBody1.GetLinearVelocity().x, 2) + Math.pow(circBody1.GetLinearVelocity().y, 2));
-        speed = Math.round(speed * 100)/100;
-        label.text = speed;
+		// if (momentum >= 1) momentum-=0.5;
+		// counter++;
+		// if(counter > 10) {
+		// 	distance+=Math.floor(momentum/50);
+		// }
+		distanceLabel.text = `Distance: ${distance}m`;
         stage.update();
     });
 
