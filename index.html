@@ -106,7 +106,9 @@ frame.on("ready", function() {
         .centerReg(stage)
         .mov(-300,-300);
 
-	window.addEventListener('keyup', function(e) {
+	window.addEventListener('keyup', checkInput);
+
+	function checkInput(e) {
 		if(peddleBuffer.length > 1) peddleBuffer.shift();
 		peddleBuffer.push(e.keyCode);
 		console.log(peddleBuffer);
@@ -120,7 +122,7 @@ frame.on("ready", function() {
 			case peddleRight: checkPeddle(peddleBuffer);
 				break;
 		}
-	});
+	}
 
 	function checkPeddle(buffer) {
 		console.log(buffer);
@@ -145,6 +147,18 @@ frame.on("ready", function() {
 	}
 	function leftForce() {
 		circBody1.ApplyImpulse(new b2Vec2(-10, 0), circBody1.GetWorldCenter());
+	}
+
+	function hasFallen() {
+		if (circBody1.y > 650) {
+			//circBody1.dynamic = false;
+			console.log("Now its ended");
+			circ2.removeFrom(stage);
+			window.removeEventListener('keyup', checkInput);
+			Ticker.removeAll();
+			distanceLabel.text = `Game Over! You Traveled ${distance}m`;
+			stage.update();
+		}
 	}
 
     // circ1.on('click', function(){
@@ -172,12 +186,8 @@ frame.on("ready", function() {
 	// label.text = speed;
 
     Ticker.add(function(){
-		// if (momentum >= 1) momentum-=0.5;
-		// counter++;
-		// if(counter > 10) {
-		// 	distance+=Math.floor(momentum/50);
-		// }
 		distanceLabel.text = `Distance: ${distance}m`;
+		hasFallen();
         stage.update();
     });
 
