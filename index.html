@@ -27,7 +27,7 @@ frame.on("ready", function() {
 
 	var physics = new zim.Physics(frame, borders, 6);
 
-	//physics.debug();
+	physics.debug();
 
 	// INITIAL VARS
 	// here we specify width, height, radius
@@ -41,12 +41,22 @@ frame.on("ready", function() {
 		width: boxW,
 		height: boxH,
 		dynamic: true,
-		friction: .2,
+		friction: 0,
 		density: 0.5
 	});
 
-    var circBody1 = physics.makeCircle({dynamic:true,radius:circleR, angular:.1, linear:.1});
-    var circBody2= physics.makeCircle({dynamic:false,radius:circleR, angular:.1, linear:.1});
+    var circBody1 = physics.makeCircle({
+		dynamic:true,
+		radius:circleR,
+		angular:.1,
+		linear:.1
+	});
+    var circBody2= physics.makeCircle({
+		dynamic:false,
+		radius:circleR,
+		angular:.1,
+		linear:.1
+	});
 
     circBody1.x = 500;
     circBody1.y = 500;
@@ -83,8 +93,8 @@ frame.on("ready", function() {
 	let successfulPeddle;
 	let peddleBuffer = [0,0];
 	let momentum = 0;
-	//let counter = 0;
 	let distance = 0;
+	let alternatePeddleForce = Math.floor(Math.random() * 4) + 1;
 
 	var distanceLabel = new Label({
        text:`Distance: ${distance}m`,
@@ -128,8 +138,14 @@ frame.on("ready", function() {
 		}
 	}
 
+	function randomPeddleForce() {
+		return alternatePeddleForce = Math.floor(Math.random() * 6) + 1;
+	}
+
 	function upForce() {
-		circBody1.ApplyImpulse(new b2Vec2(0, -18), circBody1.GetWorldCenter());
+		alternatePeddleForce = alternatePeddleForce > 0 ? -Math.abs(randomPeddleForce()) : Math.abs(randomPeddleForce());
+		circBody1.ApplyImpulse(new b2Vec2(alternatePeddleForce, -18), circBody1.GetWorldCenter());
+		console.log(alternatePeddleForce);
 	}
 	function rightForce() {
 		circBody1.ApplyImpulse(new b2Vec2(10, 0), circBody1.GetWorldCenter());
@@ -139,8 +155,7 @@ frame.on("ready", function() {
 	}
 
 	function hasFallen() {
-		if (circBody1.y > 650) {
-			//circBody1.dynamic = false;
+		if (circBody1.y > 650) { //Check to see if the head of the rider has dipped below 650 on the Y axis of the game
 			console.log("Now its ended");
 			circ2.removeFrom(stage);
 			window.removeEventListener('keyup', checkInput);
@@ -148,6 +163,24 @@ frame.on("ready", function() {
 			distanceLabel.text = `Game Over! You Traveled ${distance}m`;
 			stage.update();
 		}
+	}
+
+	function setBoxDensity(boxName,density) {
+		boxName.m_fixtureList.SetDensity(density); //After reseting the density we have to recalculate the mass for it to take effect
+		boxName.ResetMassData();
+	}
+
+	function checkDistance() {
+		if (distance >= 75 && distance < 125) {
+			setBoxDensity(bbox, 0.75);
+		} else if (distance >= 200 && distance < 250) {
+			setBoxDensity(bbox, 1);
+		} else if (distance >= 325 && distance < 400){
+			setBoxDensity(bbox, 1.25);
+		} else if (distance >= 475) {
+			setBoxDensity(bbox, 1.5);
+		}
+		console.log(`Box Density: ${bbox}`);
 	}
 
 	//Old speed function
@@ -165,8 +198,9 @@ frame.on("ready", function() {
 	// label.text = speed;
 
     Ticker.add(function(){
-		distanceLabel.text = `Distance: ${distance}m`;
-		hasFallen();
+		checkDistance(); //Checks how far the user has come and adjusts the difficulty
+		distanceLabel.text = `Distance: ${distance}m`; //Update the distance display
+		hasFallen(); //Check to see if the user has fallen and end the game
         stage.update();
     });
 
