@@ -22,12 +22,10 @@ frame.on("ready", function() {
 	var stageW = frame.width;
 	var stageH = frame.height;
 
+	var borders = {x:0, y:0, width:stageW, height:stageH}; //Creating a border around the play area
+	var physics = new zim.Physics(frame, borders, 6); //Setting gravity to a value of 6
 
-	var borders = {x:0, y:0, width:stageW, height:stageH};
-
-	var physics = new zim.Physics(frame, borders, 6);
-
-	physics.debug();
+	physics.debug(); //Turns on debug mode
 
 	// INITIAL VARS
 	// here we specify width, height, radius
@@ -36,7 +34,7 @@ frame.on("ready", function() {
 	var boxW = 50;
 	var boxH = 50;
 
-	//Creating the small box
+	//Creating the physics objects, a square for variability, a circle for the users head and another circle to act a joint
 	var bbox = physics.makeRectangle({
 		width: boxW,
 		height: boxH,
@@ -44,7 +42,6 @@ frame.on("ready", function() {
 		friction: 0,
 		density: 0.5
 	});
-
     var circBody1 = physics.makeCircle({
 		dynamic:true,
 		radius:circleR,
@@ -68,34 +65,37 @@ frame.on("ready", function() {
 	bbox.y = 500;
 
     let circ1 = new Circle(circleR, frame.blue).addTo(stage).pos(circBody1.x, circBody1.y);
-
     let circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
 
+	//Adding Zim objects to mask the physics circles so they can be visible to users
     physics.addMap(circBody1, circ1);
     physics.addMap(circBody2, circ2);
 
-    let speed;
-
+	//This creats a joint between a ball that acts as an anchor in the middle of the screen and the characters head
     var distanceJointDef = new b2DistanceJointDef();
-    // two bodies followed by joint end positions
     distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
     physics.world.CreateJoint(distanceJointDef);
 
+	// This joint is between the characters head and an invisible box (invisible to the uses)
+	// It is used to add variability and make it more difficult for a user to predict the riders movement
 	var boxJointDef = new b2DistanceJointDef();
 	boxJointDef.Initialize(circBody1, bbox, circBody1.GetWorldCenter(), bbox.GetWorldCenter());
 	physics.world.CreateJoint(boxJointDef);
 
+	//Initial variables for the game
 	const leanLeft = 83;
 	const leanRight = 75;
 	const peddleLeft = 88;
 	const peddleRight = 77;
 	const peddleCombo = [peddleLeft, peddleRight];
+
 	let successfulPeddle;
 	let peddleBuffer = [0,0];
-	let momentum = 0;
+	let momentum = 1;
 	let distance = 0;
 	let alternatePeddleForce = Math.floor(Math.random() * 4) + 1;
 
+	//A label to track the users distance and eventually display the game over message
 	var distanceLabel = new Label({
        text:`Distance: ${distance}m`,
        size:40,
@@ -105,12 +105,14 @@ frame.on("ready", function() {
         .centerReg(stage)
         .mov(-300,-300);
 
+	//Event listener for users' keyboard inputs so they can be handled
 	window.addEventListener('keyup', checkInput);
 
+	//Function to taking in user inputs and applying corresponding forces to the game physics
 	function checkInput(e) {
 		if(peddleBuffer.length > 1) peddleBuffer.shift();
 		peddleBuffer.push(e.keyCode);
-		console.log(peddleBuffer);
+		// console.log(peddleBuffer); //Log for debugging the buffer of user inputs
 		switch(e.keyCode) {
 			case leanLeft: leftForce();
 				break;
@@ -124,17 +126,17 @@ frame.on("ready", function() {
 	}
 
 	function checkPeddle(buffer) {
-		console.log(buffer);
-		// successfulPeddle = peddleCombo.every((val) => buffer.includes(val) ? buffer.shift() : false);
+		//console.log(buffer); //Another log for buffer debugging
+		// successfulPeddle = peddleCombo.every((val) => buffer.includes(val) ? buffer.shift() : false); //Initial buffer testing function, but it didn't work correctly
+		//Testing to see if the peddleBuffer variable thats passed into this function has specifically both peddle inputs in it, so the users last 2 inputs would have to be x and m in the peddleBuffer array
 		if (buffer.indexOf(peddleLeft) !== -1 && buffer.indexOf(peddleRight) !== -1) {
-			upForce();
-			distance+=Math.round(momentum/50);
-			if(momentum < 100) momentum+=4;
-			//counter = 0;
-			console.log(momentum);
+			upForce(); //A function which applies an upward force to the character in the game
+			distance+=Math.round(momentum/50); //Calculating the distance the user biked which is based on their momentum
+			if(momentum < 100) momentum+=4; //4 is added to the bikers momentum on each successful peddle
+			//console.log(momentum); //debugging the momentum
 		} else {
-			if(momentum > 0) momentum-=10; //Make a default of 0
-			console.log(momentum);
+			momentum < 0 ? 0 : momentum-=8; //If the buffer has only 1 peddle key in it then this is run where we subtract an amount from the users momentum making it more difficult to rack up distance, penalizing mistakes
+			console.log(`Momentum after subtractiong: ${momentum}`);
 		}
 	}
 
@@ -145,11 +147,13 @@ frame.on("ready", function() {
 	function upForce() {
 		alternatePeddleForce = alternatePeddleForce > 0 ? -Math.abs(randomPeddleForce()) : Math.abs(randomPeddleForce());
 		circBody1.ApplyImpulse(new b2Vec2(alternatePeddleForce, -18), circBody1.GetWorldCenter());
-		console.log(alternatePeddleForce);
+		console.log(`Alternating peddle force: ${alternatePeddleForce}`);
 	}
+
 	function rightForce() {
 		circBody1.ApplyImpulse(new b2Vec2(10, 0), circBody1.GetWorldCenter());
 	}
+
 	function leftForce() {
 		circBody1.ApplyImpulse(new b2Vec2(-10, 0), circBody1.GetWorldCenter());
 	}
@@ -180,10 +184,10 @@ frame.on("ready", function() {
 		} else if (distance >= 475) {
 			setBoxDensity(bbox, 1.5);
 		}
-		console.log(`Box Density: ${bbox}`);
 	}
 
 	//Old speed function
+	// let speed;
 	// var label = new Label({
     //    text:speed,
     //    size:60,
