@@ -2,14 +2,11 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Box2D Force</title>
+<title>Drunk Bike</title>
 
 <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
-<script>var zon = true; // true for comments from zim code</script>
 <script src="https://d309knd7es5f10.cloudfront.net/zim_6.8.1.js"></script>
 
-
-<!-- physics libraries -->
 <script src="https://d309knd7es5f10.cloudfront.net/Box2dWeb-2.1.a.3.min.js"></script>
 <script src="libs/physics_0.1.2.js"></script><!-- helper code for box2D -->
 
@@ -51,8 +48,6 @@ frame.on("ready", function() {
     var circBody1 = physics.makeCircle({dynamic:true,radius:circleR, angular:.1, linear:.1});
     var circBody2= physics.makeCircle({dynamic:false,radius:circleR, angular:.1, linear:.1});
 
-	//var barBody = physics.makeRectangle(boxW, boxH, true, .2);
-
     circBody1.x = 500;
     circBody1.y = 500;
 
@@ -66,12 +61,8 @@ frame.on("ready", function() {
 
     let circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
 
-	//Old skin for invisible box that sways rider for difficulty
-	// let box1 = new Rectangle(boxW, boxH, frame.green).centerReg(stage).pos(bbox.x, bbox.y);
-
     physics.addMap(circBody1, circ1);
     physics.addMap(circBody2, circ2);
-	//physics.addMap(bbox, box1);
 
     let speed;
 
@@ -83,8 +74,6 @@ frame.on("ready", function() {
 	var boxJointDef = new b2DistanceJointDef();
 	boxJointDef.Initialize(circBody1, bbox, circBody1.GetWorldCenter(), bbox.GetWorldCenter());
 	physics.world.CreateJoint(boxJointDef);
-
-	//console.log(bbox.GetWorldCenter());
 
 	const leanLeft = 83;
 	const leanRight = 75;
@@ -160,16 +149,6 @@ frame.on("ready", function() {
 			stage.update();
 		}
 	}
-
-    // circ1.on('click', function(){
-	// 	circBody1.ApplyImpulse(
-    //         new b2Vec2(0, speed), circBody1.GetWorldCenter()
-    //         //This second line tells us to apply the force at the stage.mousex divided by the physics scale, so its applied correctly in the physics world
-    //         //The first b2Vec2 is the impulse, the second is the point
-    //     );
-    //     console.log(circBody1.GetLinearVelocity());
-    //     console.log(speed);
-    // });
 
 	//Old speed function
 	// var label = new Label({
