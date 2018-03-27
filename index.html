@@ -132,16 +132,16 @@ frame.on("ready", function() {
 		if (buffer.indexOf(peddleLeft) !== -1 && buffer.indexOf(peddleRight) !== -1) {
 			upForce(); //A function which applies an upward force to the character in the game
 			distance+=Math.round(momentum/50); //Calculating the distance the user biked which is based on their momentum
-			if(momentum < 100) momentum+=4; //4 is added to the bikers momentum on each successful peddle
+			if(momentum < 120) momentum+=4; //4 is added to the bikers momentum on each successful peddle
 			//console.log(momentum); //debugging the momentum
 		} else {
-			momentum < 0 ? 0 : momentum-=8; //If the buffer has only 1 peddle key in it then this is run where we subtract an amount from the users momentum making it more difficult to rack up distance, penalizing mistakes
+			momentum < 0 ? 0 : momentum-=6; //If the buffer has only 1 peddle key in it then this is run where we subtract an amount from the users momentum making it more difficult to rack up distance, penalizing mistakes
 			console.log(`Momentum after subtractiong: ${momentum}`);
 		}
 	}
 
 	function randomPeddleForce() {
-		return alternatePeddleForce = Math.floor(Math.random() * 6) + 1;
+		return alternatePeddleForce = Math.floor(Math.random() * 6) + 2;
 	}
 
 	function upForce() {
@@ -169,7 +169,7 @@ frame.on("ready", function() {
 		}
 	}
 
-	function setBoxDensity(boxName,density) {
+	function setBoxDensity(boxName, density) {
 		boxName.m_fixtureList.SetDensity(density); //After reseting the density we have to recalculate the mass for it to take effect
 		boxName.ResetMassData();
 	}
@@ -185,21 +185,6 @@ frame.on("ready", function() {
 			setBoxDensity(bbox, 1.5);
 		}
 	}
-
-	//Old speed function
-	// let speed;
-	// var label = new Label({
-    //    text:speed,
-    //    size:60,
-    //    font:"courier",
-    //    color:frame.pink,
-    // })
-    //     .centerReg(stage)
-    //     .mov(-300,-300);
-	// //These in the ticker
-	// speed = Math.sqrt(Math.pow(circBody1.GetLinearVelocity().x, 2) + Math.pow(circBody1.GetLinearVelocity().y, 2));
-	// speed = Math.round(speed * 100)/100;
-	// label.text = speed;
 
     Ticker.add(function(){
 		checkDistance(); //Checks how far the user has come and adjusts the difficulty
