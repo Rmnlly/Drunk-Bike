@@ -23,9 +23,8 @@ frame.on("ready", function() {
 	var stageH = frame.height;
 
 	var borders = {x:0, y:0, width:stageW, height:stageH}; //Creating a border around the play area
-	var physics = new zim.Physics(frame, borders, 6); //Setting gravity to a value of 6
 
-	physics.debug(); //Turns on debug mode
+	var physics, bbox, circBody1, circBody2, circ1, circ2;
 
 	// INITIAL VARS
 	// here we specify width, height, radius
@@ -33,54 +32,6 @@ frame.on("ready", function() {
 	var circleR = 50;
 	var boxW = 50;
 	var boxH = 50;
-
-	//Creating the physics objects, a square for variability, a circle for the users head and another circle to act a joint
-	var bbox = physics.makeRectangle({
-		width: boxW,
-		height: boxH,
-		dynamic: true,
-		friction: 0,
-		density: 0.5
-	});
-    var circBody1 = physics.makeCircle({
-		dynamic:true,
-		radius:circleR,
-		angular:.1,
-		linear:.1
-	});
-    var circBody2= physics.makeCircle({
-		dynamic:false,
-		radius:circleR,
-		angular:.1,
-		linear:.1
-	});
-
-    circBody1.x = 500;
-    circBody1.y = 500;
-
-    circBody2.x = 500;
-    circBody2.y = 800;
-
-	bbox.x = 600;
-	bbox.y = 500;
-
-    let circ1 = new Circle(circleR, frame.blue).addTo(stage).pos(circBody1.x, circBody1.y);
-    let circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
-
-	//Adding Zim objects to mask the physics circles so they can be visible to users
-    physics.addMap(circBody1, circ1);
-    physics.addMap(circBody2, circ2);
-
-	//This creats a joint between a ball that acts as an anchor in the middle of the screen and the characters head
-    var distanceJointDef = new b2DistanceJointDef();
-    distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
-    physics.world.CreateJoint(distanceJointDef);
-
-	// This joint is between the characters head and an invisible box (invisible to the uses)
-	// It is used to add variability and make it more difficult for a user to predict the riders movement
-	var boxJointDef = new b2DistanceJointDef();
-	boxJointDef.Initialize(circBody1, bbox, circBody1.GetWorldCenter(), bbox.GetWorldCenter());
-	physics.world.CreateJoint(boxJointDef);
 
 	//Initial variables for the game
 	const leanLeft = 83;
@@ -95,6 +46,66 @@ frame.on("ready", function() {
 	let distance = 0;
 	let alternatePeddleForce = Math.floor(Math.random() * 4) + 1;
 
+	function init() {
+		physics = new zim.Physics(frame, borders, 6); //Setting gravity to a value of 6
+
+		physics.debug(); //Turns on debug mode
+
+		//Creating the physics objects, a square for variability, a circle for the users head and another circle to act a joint
+		bbox = physics.makeRectangle({
+			width: boxW,
+			height: boxH,
+			dynamic: true,
+			friction: 0,
+			density: 0.5
+		});
+	    circBody1 = physics.makeCircle({
+			dynamic:true,
+			radius:circleR,
+			angular:.1,
+			linear:.1
+		});
+	    circBody2= physics.makeCircle({
+			dynamic:false,
+			radius:circleR,
+			angular:.1,
+			linear:.1
+		});
+
+	    circBody1.x = 500;
+	    circBody1.y = 500;
+
+	    circBody2.x = 500;
+	    circBody2.y = 800;
+
+		bbox.x = 600;
+		bbox.y = 500;
+
+	    circ1 = new Circle(circleR, frame.blue).addTo(stage).pos(circBody1.x, circBody1.y);
+
+		circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
+
+		//Adding Zim objects to mask the physics circles so they can be visible to users
+	    physics.addMap(circBody1, circ1);
+	    physics.addMap(circBody2, circ2);
+
+		//This creats a joint between a ball that acts as an anchor in the middle of the screen and the characters head
+	    var distanceJointDef = new b2DistanceJointDef();
+	    distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
+	    physics.world.CreateJoint(distanceJointDef);
+
+		// This joint is between the characters head and an invisible box (invisible to the uses)
+		// It is used to add variability and make it more difficult for a user to predict the riders movement
+		var boxJointDef = new b2DistanceJointDef();
+		boxJointDef.Initialize(circBody1, bbox, circBody1.GetWorldCenter(), bbox.GetWorldCenter());
+		physics.world.CreateJoint(boxJointDef);
+
+		//Event listener for users' keyboard inputs so they can be handled
+		window.addEventListener('keyup', checkInput);
+	}
+
+	init();
+
 	//A label to track the users distance and eventually display the game over message
 	var distanceLabel = new Label({
        text:`Distance: ${distance}m`,
@@ -105,8 +116,14 @@ frame.on("ready", function() {
         .centerReg(stage)
         .mov(-300,-300);
 
-	//Event listener for users' keyboard inputs so they can be handled
-	window.addEventListener('keyup', checkInput);
+	//Reset button
+	let resetBtn = new Button({
+		label: "Restart",
+		width: 200,
+		height: 100,
+		color: "red",
+		corner: 5
+	});
 
 	//Function to taking in user inputs and applying corresponding forces to the game physics
 	function checkInput(e) {
@@ -160,11 +177,11 @@ frame.on("ready", function() {
 
 	function hasFallen() {
 		if (circBody1.y > 650) { //Check to see if the head of the rider has dipped below 650 on the Y axis of the game
-			console.log("Now its ended");
 			circ2.removeFrom(stage);
 			window.removeEventListener('keyup', checkInput);
-			Ticker.removeAll();
+			//Ticker.removeAll();
 			distanceLabel.text = `Game Over! You Traveled ${distance}m`;
+			resetBtn.center(stage);
 			stage.update();
 		}
 	}
@@ -185,6 +202,21 @@ frame.on("ready", function() {
 			setBoxDensity(bbox, 1.5);
 		}
 	}
+
+	resetBtn.on("click", function() {
+		distanceLabel.text = `Distance: ${distance}m`;
+		resetBtn.removeFrom(stage);
+		physics.removeMap(circBody1);
+		physics.removeMap(circBody2);
+		physics.remove(bbox);
+		physics.remove(circBody1);
+		physics.remove(circBody2);
+		stage.removeChild(circ1);
+		stage.removeChild(circ2);
+		physics.dispose();
+		stage.update();
+		init();
+	});
 
     Ticker.add(function(){
 		checkDistance(); //Checks how far the user has come and adjusts the difficulty
