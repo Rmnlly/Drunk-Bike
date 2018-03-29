@@ -26,6 +26,7 @@ frame.on("ready", function() {
 
 	var physics, bbox, circBody1, circBody2, circ1, circ2, body1;
 	var b2WeldJointDef = Box2D.Dynamics.Joints.b2WeldJointDef;
+	var b2RevoluteJointDef = Box2D.Dynamics.Joints.b2RevoluteJointDef
 
 	// INITIAL VARS
 	// here we specify width, height, radius
@@ -50,7 +51,7 @@ frame.on("ready", function() {
 	function init() {
 		physics = new zim.Physics(frame, borders, 6); //Setting gravity to a value of 6
 
-		physics.debug(); //Turns on debug mode
+		//physics.debug(); //Turns on debug mode
 
 		//Creating the physics objects, a square for variability, a circle for the users head and another circle to act a joint
 		bbox = physics.makeRectangle({
@@ -66,7 +67,6 @@ frame.on("ready", function() {
 			angular:.1,
 			linear:.1
 		});
-		console.log(circBody1);
 	    circBody2= physics.makeCircle({
 			dynamic:false,
 			radius:circleR,
@@ -88,7 +88,7 @@ frame.on("ready", function() {
 		circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
 
 		//A rectangle to act as the body of the biker
-		//body1 = new Rectangle(20, 300, frame.green).addTo(circ1);
+		body1 = new Rectangle(20, 300, frame.black).reg(10,0).addTo(circ1, 0);
 
 		//Adding Zim objects to mask the physics circles so they can be visible to users
 		physics.addMap(circBody1, circ1);
@@ -96,9 +96,13 @@ frame.on("ready", function() {
 	    physics.addMap(circBody2, circ2);
 
 		//This creats a joint between a ball that acts as an anchor in the middle of the screen and the characters head
-	    var distanceJointDef = new b2DistanceJointDef();
-	    distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
-	    physics.world.CreateJoint(distanceJointDef);
+	    // var distanceJointDef = new b2DistanceJointDef();
+	    // distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
+	    // physics.world.CreateJoint(distanceJointDef);
+
+		var revoluteJoint = new b2RevoluteJointDef();
+	    revoluteJoint.Initialize(circBody1, circBody2, circBody2.GetWorldCenter());
+	    physics.world.CreateJoint(revoluteJoint);
 
 		//Attempt at creating a joint that revolves correctly
 		// distanceJointDef.Initialize(circBody2, circBody1, circBody2.GetWorldCenter(), new b2Vec2(circBody2.GetWorldCenter().x + 10, b2Vec2(circBody2.GetWorldCenter().y + 10)));
