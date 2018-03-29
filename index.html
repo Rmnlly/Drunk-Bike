@@ -41,10 +41,10 @@ frame.on("ready", function() {
 	const peddleCombo = [peddleLeft, peddleRight];
 
 	let successfulPeddle;
-	let peddleBuffer = [0,0];
-	let momentum = 1;
-	let distance = 0;
-	let alternatePeddleForce = Math.floor(Math.random() * 4) + 1;
+	let peddleBuffer;
+	let momentum;
+	let distance;
+	let alternatePeddleForce;
 
 	function init() {
 		physics = new zim.Physics(frame, borders, 6); //Setting gravity to a value of 6
@@ -102,6 +102,11 @@ frame.on("ready", function() {
 
 		//Event listener for users' keyboard inputs so they can be handled
 		window.addEventListener('keyup', checkInput);
+
+		peddleBuffer = [0,0];
+		momentum = 1;
+		distance = 0;
+		alternatePeddleForce = Math.floor(Math.random() * 4) + 1;
 	}
 
 	init();
