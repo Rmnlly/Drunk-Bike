@@ -24,7 +24,8 @@ frame.on("ready", function() {
 
 	var borders = {x:0, y:0, width:stageW, height:stageH}; //Creating a border around the play area
 
-	var physics, bbox, circBody1, circBody2, circ1, circ2;
+	var physics, bbox, circBody1, circBody2, circ1, circ2, body1;
+	var b2WeldJointDef = Box2D.Dynamics.Joints.b2WeldJointDef;
 
 	// INITIAL VARS
 	// here we specify width, height, radius
@@ -65,6 +66,7 @@ frame.on("ready", function() {
 			angular:.1,
 			linear:.1
 		});
+		console.log(circBody1);
 	    circBody2= physics.makeCircle({
 			dynamic:false,
 			radius:circleR,
@@ -85,8 +87,12 @@ frame.on("ready", function() {
 
 		circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
 
+		//A rectangle to act as the body of the biker
+		//body1 = new Rectangle(20, 300, frame.green).addTo(circ1);
+
 		//Adding Zim objects to mask the physics circles so they can be visible to users
-	    physics.addMap(circBody1, circ1);
+		physics.addMap(circBody1, circ1);
+	    //physics.addMap(circBody1, body1);
 	    physics.addMap(circBody2, circ2);
 
 		//This creats a joint between a ball that acts as an anchor in the middle of the screen and the characters head
@@ -94,8 +100,28 @@ frame.on("ready", function() {
 	    distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
 	    physics.world.CreateJoint(distanceJointDef);
 
+		//Attempt at creating a joint that revolves correctly
+		// distanceJointDef.Initialize(circBody2, circBody1, circBody2.GetWorldCenter(), new b2Vec2(circBody2.GetWorldCenter().x + 10, b2Vec2(circBody2.GetWorldCenter().y + 10)));
+	    // physics.world.CreateJoint(distanceJointDef);
+
+		//create distance joint between b and c
+		// var joint_def = new b2WeldJointDef();
+		// joint_def.Initialize(circBody1, circBody2, circBody1.GetWorldCenter());
+		// // joint_def.bodyA = circBody1;
+		// // joint_def.bodyB = circBody2;
+		// //
+		// // //connect the centers - center in local coordinate - relative to body is 0,0
+		// // joint_def.localAnchorA = new b2Vec2(-0.5, -0.5);
+		// // joint_def.localAnchorB = new b2Vec2(0.5, 0.5);
+		// //
+		// // //difference in angle of each body
+		// // joint_def.referenceAngle = 0 * Math.PI / 3;
+		//
+		// //add the joint to the world
+		// physics.world.CreateJoint(joint_def);
+
 		// This joint is between the characters head and an invisible box (invisible to the uses)
-		// It is used to add variability and make it more difficult for a user to predict the riders movement
+		// It is used to add variability xmand make it more difficult for a user to predict the riders movement
 		var boxJointDef = new b2DistanceJointDef();
 		boxJointDef.Initialize(circBody1, bbox, circBody1.GetWorldCenter(), bbox.GetWorldCenter());
 		physics.world.CreateJoint(boxJointDef);
