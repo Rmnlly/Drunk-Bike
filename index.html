@@ -24,7 +24,7 @@ frame.on("ready", function() {
 
 	var borders = {x:0, y:0, width:stageW, height:stageH}; //Creating a border around the play area
 
-	var physics, bbox, circBody1, circBody2, circ1, circ2, body1;
+	var physics, bbox, circBody1, circBody2, circ1, circ2, body1, backgroundBox, controls;
 	var b2WeldJointDef = Box2D.Dynamics.Joints.b2WeldJointDef;
 	var b2RevoluteJointDef = Box2D.Dynamics.Joints.b2RevoluteJointDef
 
@@ -36,6 +36,7 @@ frame.on("ready", function() {
 	var boxH = 50;
 
 	//Initial variables for the game
+	let gameStart = false;
 	const leanLeft = 83;
 	const leanRight = 75;
 	const peddleLeft = 88;
@@ -48,7 +49,56 @@ frame.on("ready", function() {
 	let distance;
 	let alternatePeddleForce;
 
+	//Reset button
+	let resetBtn = new Button({
+		label: "Restart",
+		width: 200,
+		height: 100,
+		color: "red",
+		rollColor: "#7647A2",
+		corner: 10
+	});
+
+	//Label to track the distance a user has gone, essentially a score
+	let distanceLabel = new Label({
+	   text:`${distance}m`,
+	   size:80,
+	   font:"courier",
+	   color:"#7647A2"
+   	});
+
+	function controlsScreen() {
+		backgroundBox = new Rectangle(600, 300, "#696969").centerReg(stage).mov(0, -100);
+
+		controls = new Label({
+			text:
+			`Controls:
+
+			Press X then M to peddle
+			(Must be hit one after another repeatedly)
+
+			S to lean left
+
+			K to lean
+
+			Peddle to stay upright and gain distance
+			while using leaning to help stabilize
+
+
+
+
+
+			Press enter to start game`,
+	        size:20,
+	        font:"courier",
+	        color: "#FFFFFF"
+		}).addTo(backgroundBox).mov(15, 25);
+
+		window.addEventListener('keydown', startGame);
+	}
+
 	function init() {
+		gameStart = true;
 		physics = new zim.Physics(frame, borders, 6); //Setting gravity to a value of 6
 
 		//physics.debug(); //Turns on debug mode
@@ -85,44 +135,23 @@ frame.on("ready", function() {
 
 	    circ1 = new Circle(circleR, frame.blue).addTo(stage).pos(circBody1.x, circBody1.y);
 
-		circ2 = new Circle(circleR, frame.red).addTo(stage).pos(circBody2.x, circBody2.y);
-
 		//A rectangle to act as the body of the biker
-		body1 = new Rectangle(20, 300, frame.black).reg(10,0).addTo(circ1, 0);
+		bikeBody = new Rectangle(10, 170, frame.black).reg(5,0).addTo(circ1, 0);
+		bikeHandle = new Rectangle(70, 10, frame.brown).reg(35,0).addTo(circ1, 0).mov(0,70);
+		bikeTire = new Rectangle(20, 130, frame.grey).reg(10,0).addTo(circ1, 0).mov(0,170);
 
 		//Adding Zim objects to mask the physics circles so they can be visible to users
 		physics.addMap(circBody1, circ1);
-	    //physics.addMap(circBody1, body1);
-	    physics.addMap(circBody2, circ2);
 
 		//This creats a joint between a ball that acts as an anchor in the middle of the screen and the characters head
 	    // var distanceJointDef = new b2DistanceJointDef();
 	    // distanceJointDef.Initialize(circBody1, circBody2, circBody1.GetWorldCenter(), circBody2.GetWorldCenter());
 	    // physics.world.CreateJoint(distanceJointDef);
 
+		//This creates a pivot joint between an invisible circle at the bottom of the stage and the riders head, it allows the riders head to pivot while keeping their body elements facing towards the pivot point
 		var revoluteJoint = new b2RevoluteJointDef();
 	    revoluteJoint.Initialize(circBody1, circBody2, circBody2.GetWorldCenter());
 	    physics.world.CreateJoint(revoluteJoint);
-
-		//Attempt at creating a joint that revolves correctly
-		// distanceJointDef.Initialize(circBody2, circBody1, circBody2.GetWorldCenter(), new b2Vec2(circBody2.GetWorldCenter().x + 10, b2Vec2(circBody2.GetWorldCenter().y + 10)));
-	    // physics.world.CreateJoint(distanceJointDef);
-
-		//create distance joint between b and c
-		// var joint_def = new b2WeldJointDef();
-		// joint_def.Initialize(circBody1, circBody2, circBody1.GetWorldCenter());
-		// // joint_def.bodyA = circBody1;
-		// // joint_def.bodyB = circBody2;
-		// //
-		// // //connect the centers - center in local coordinate - relative to body is 0,0
-		// // joint_def.localAnchorA = new b2Vec2(-0.5, -0.5);
-		// // joint_def.localAnchorB = new b2Vec2(0.5, 0.5);
-		// //
-		// // //difference in angle of each body
-		// // joint_def.referenceAngle = 0 * Math.PI / 3;
-		//
-		// //add the joint to the world
-		// physics.world.CreateJoint(joint_def);
 
 		// This joint is between the characters head and an invisible box (invisible to the uses)
 		// It is used to add variability xmand make it more difficult for a user to predict the riders movement
@@ -137,29 +166,12 @@ frame.on("ready", function() {
 		momentum = 1;
 		distance = 0;
 		alternatePeddleForce = Math.floor(Math.random() * 4) + 1;
+
+		//A label to track the users distance and eventually display the game over message
+
+	    distanceLabel.addTo(stage).pos(100,100);
+		stage.update();
 	}
-
-	init(); //Creates the chapes and connections for the first round of the game
-
-	//A label to track the users distance and eventually display the game over message
-	var distanceLabel = new Label({
-       text:`Distance: ${distance}m`,
-       size:40,
-       font:"courier",
-       color:frame.pink,
-    })
-        .centerReg(stage)
-        .mov(-300,-300);
-
-	//Reset button
-	let resetBtn = new Button({
-		label: "Restart",
-		width: 200,
-		height: 100,
-		color: "red",
-		rollColor: "MediumOrchid",
-		corner: 5
-	});
 
 	//Function to taking in user inputs and applying corresponding forces to the game physics
 	function checkInput(e) {
@@ -189,7 +201,6 @@ frame.on("ready", function() {
 			//console.log(momentum); //debugging the momentum
 		} else {
 			momentum < 0 ? 0 : momentum-=6; //If the buffer has only 1 peddle key in it then this is run where we subtract an amount from the users momentum making it more difficult to rack up distance, penalizing mistakes
-			console.log(`Momentum after subtractiong: ${momentum}`);
 		}
 	}
 
@@ -200,7 +211,6 @@ frame.on("ready", function() {
 	function upForce() {
 		alternatePeddleForce = alternatePeddleForce > 0 ? -Math.abs(randomPeddleForce()) : Math.abs(randomPeddleForce());
 		circBody1.ApplyImpulse(new b2Vec2(alternatePeddleForce, -18), circBody1.GetWorldCenter());
-		console.log(`Alternating peddle force: ${alternatePeddleForce}`);
 	}
 
 	function rightForce() {
@@ -212,13 +222,14 @@ frame.on("ready", function() {
 	}
 
 	function hasFallen() {
-		if (circBody1.y > 650) { //Check to see if the head of the rider has dipped below 650 on the Y axis of the game
-			circ2.removeFrom(stage);
-			window.removeEventListener('keyup', checkInput);
-			//Ticker.removeAll();
-			distanceLabel.text = `Game Over! You Traveled ${distance}m`;
-			resetBtn.center(stage);
-			stage.update();
+		if(gameStart) {
+			if (circBody1.y > 650) { //Check to see if the head of the rider has dipped below 650 on the Y axis of the game
+				gameStart = false;
+				window.removeEventListener('keyup', checkInput);
+				distanceLabel.text = `You Traveled ${distance}m`;
+				resetBtn.center(stage);
+				stage.update();
+			}
 		}
 	}
 
@@ -239,29 +250,36 @@ frame.on("ready", function() {
 		}
 	}
 
+	function startGame() {
+		window.removeEventListener('keydown', startGame);
+		backgroundBox.removeFrom(stage);
+		controls.removeFrom(stage);
+		init(); //Creates the chapes and connections for the first round of the game
+	}
+
 	resetBtn.on("click", function() {
-		distanceLabel.text = `Distance: ${distance}m`;
+		//distanceLabel.text = `Distance: ${distance}m`;
 		resetBtn.removeFrom(stage);
+		distanceLabel.removeFrom(stage);
 		physics.removeMap(circBody1);
 		physics.removeMap(circBody2);
 		physics.remove(bbox);
 		physics.remove(circBody1);
 		physics.remove(circBody2);
 		stage.removeChild(circ1);
-		stage.removeChild(circ2);
 		physics.dispose();
 		stage.update();
-		init();
+		controlsScreen();
 	});
+
+	controlsScreen();
 
     Ticker.add(function(){
 		checkDistance(); //Checks how far the user has come and adjusts the difficulty
-		distanceLabel.text = `Distance: ${distance}m`; //Update the distance display
+		if (gameStart) distanceLabel.text = `${distance}m`; //Update the distance display
 		hasFallen(); //Check to see if the user has fallen and end the game
         stage.update();
     });
-
-	stage.update();
 });
 
 </script>
