@@ -204,23 +204,25 @@ frame.on("ready", function() {
 		}
 	}
 
+	//A calculation to create a random number and return it
 	function randomPeddleForce() {
 		return alternatePeddleForce = Math.floor(Math.random() * 6) + 2;
 	}
-
+	//A function to apply an upward force with a small horizontal force being applied to the left and right alternating
 	function upForce() {
 		alternatePeddleForce = alternatePeddleForce > 0 ? -Math.abs(randomPeddleForce()) : Math.abs(randomPeddleForce());
 		circBody1.ApplyImpulse(new b2Vec2(alternatePeddleForce, -18), circBody1.GetWorldCenter());
 	}
-
+	//A function for applying a force to the right
 	function rightForce() {
 		circBody1.ApplyImpulse(new b2Vec2(10, 0), circBody1.GetWorldCenter());
 	}
-
+	//A function for applying a force to the left
 	function leftForce() {
 		circBody1.ApplyImpulse(new b2Vec2(-10, 0), circBody1.GetWorldCenter());
 	}
-
+	//This function checks to see if the rider has fallen, it then sets the game start to false and adds a reset button to the stage
+	//This function also removes the event listeners for the keyup and shows the final score
 	function hasFallen() {
 		if(gameStart) {
 			if (circBody1.y > 650) { //Check to see if the head of the rider has dipped below 650 on the Y axis of the game
@@ -232,12 +234,13 @@ frame.on("ready", function() {
 			}
 		}
 	}
-
+	//A small helper function to reset a boxes dentsity using box2D
 	function setBoxDensity(boxName, density) {
 		boxName.m_fixtureList.SetDensity(density); //After reseting the density we have to recalculate the mass for it to take effect
 		boxName.ResetMassData();
 	}
-
+	//This function ramps up the difficulty of the game by making a small box that hangs from the riders head get more dense
+	//As this box becomes more dense it swings with more force making it more difficult to users to regain balance if they lose some
 	function checkDistance() {
 		if (distance >= 75 && distance < 125) {
 			setBoxDensity(bbox, 0.75);
@@ -256,7 +259,7 @@ frame.on("ready", function() {
 		controls.removeFrom(stage);
 		init(); //Creates the chapes and connections for the first round of the game
 	}
-
+	//This resets the game state when the reset button is pressed after a rider falls
 	resetBtn.on("click", function() {
 		//distanceLabel.text = `Distance: ${distance}m`;
 		resetBtn.removeFrom(stage);
@@ -271,7 +274,7 @@ frame.on("ready", function() {
 		stage.update();
 		controlsScreen();
 	});
-
+	//This initilaizes the game by providing the user the intial controls page and creates an event listener for a keydown on enter
 	controlsScreen();
 
     Ticker.add(function(){
