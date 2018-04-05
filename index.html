@@ -61,7 +61,7 @@ frame.on("ready", function() {
 	let distanceLabel = new Label({
 	   text:`${distance}m`,
 	   size:80,
-	   font:"",
+	   font:"courier",
 	   color:"#7647A2"
    	});
 
@@ -89,7 +89,7 @@ frame.on("ready", function() {
 
 			Press enter to start game`,
 	        size:20,
-	        font:"courier",
+	        font:"times",
 	        color: "#FFFFFF"
 		}).addTo(backgroundBox).mov(15, 25);
 
@@ -98,7 +98,7 @@ frame.on("ready", function() {
 
 	function init() {
 		gameStart = true;
-		physics = new zim.Physics(frame, borders, 0); //Setting gravity to a value of 6
+		physics = new zim.Physics(frame, borders, 6); //Setting gravity to a value of 6
 
 		//physics.debug(); //Turns on debug mode
 
