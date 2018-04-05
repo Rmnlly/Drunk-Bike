@@ -16,8 +16,6 @@
 
 var frame = new zim.Frame("fit", 1000, 800, "#222");
 frame.on("ready", function() {
-	zog("ready from ZIM Frame");
-
 	var stage = frame.stage;
 	var stageW = frame.width;
 	var stageH = frame.height;
@@ -75,7 +73,8 @@ frame.on("ready", function() {
 			`Controls:
 
 			Press X then M to peddle
-			(Must be hit one after another repeatedly)
+			(Must be hit one after another repeatedly
+			and quickly)
 
 			S to lean left
 
@@ -99,7 +98,7 @@ frame.on("ready", function() {
 
 	function init() {
 		gameStart = true;
-		physics = new zim.Physics(frame, borders, 6); //Setting gravity to a value of 6
+		physics = new zim.Physics(frame, borders, 0); //Setting gravity to a value of 6
 
 		//physics.debug(); //Turns on debug mode
 
