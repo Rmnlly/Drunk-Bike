@@ -252,11 +252,13 @@ frame.on("ready", function() {
 		}
 	}
 
-	function startGame() {
-		window.removeEventListener('keydown', startGame);
-		backgroundBox.removeFrom(stage);
-		controls.removeFrom(stage);
-		init(); //Creates the chapes and connections for the first round of the game
+	function startGame(e) {
+		if (e.keyCode == 13) {
+			window.removeEventListener('keydown', startGame);
+			backgroundBox.removeFrom(stage);
+			controls.removeFrom(stage);
+			init(); //Creates the chapes and connections for the first round of the game
+		}
 	}
 	//This resets the game state when the reset button is pressed after a rider falls
 	resetBtn.on("click", function() {
